@@ -1,0 +1,10 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: microsoft/dotnet:sdk
+    steps:
+      - checkout
+      - run: dotnet restore
+      - run: dotnet build $PROJECT_NAME
+      - run: dotnet test "--logger:junit;LogFilePath=./test-reports/results.xml" /p:Include="[${PROJECT_NAME}*]*" /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Thereshold=80 /p:CoverletOutput="../coverage.xml"      
