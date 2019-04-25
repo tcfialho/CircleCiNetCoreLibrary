@@ -7,7 +7,13 @@ jobs:
       - checkout
       - run: dotnet restore
       - run: dotnet build $PROJECT_NAME
-      - run: dotnet test "--logger:junit;LogFilePath=./test-reports/results.xml" /p:Include="[${PROJECT_NAME}*]*" /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Thereshold=80 /p:CoverletOutput="../coverage.xml"
+      - run: dotnet test "--logger:junit;LogFilePath=./test-reports/results.xml" /p:Include="[${PROJECT_NAME}*]*" /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Thereshold=${MINIMUM_COVERAGE} /p:CoverletOutput="../coverage.xml"
       - run: curl -s https://codecov.io/bash > codecov
       - run: chmod +x codecov
       - run: ./codecov -f "coverage.xml" -t $CODECOV_TOKEN
+      - run: export VERSION=1.$CIRCLE_BUILD_NUM
+      - run:
+            command: |
+                echo 'export VERSION="1.$CIRCLE_BUILD_NUM"' >> $BASH_ENV
+      - run: dotnet pack --output nupkgs -p:PackageVersion=$VERSION
+      - run: curl -F package=@/root/project/${PROJECT_NAME}/nupkgs/${PROJECT_NAME}.${VERSION}.0.nupkg https://${GEM_FURY_PUSH_TOKEN}@push.fury.io/${GEM_FURY_ACCOUNT}/
